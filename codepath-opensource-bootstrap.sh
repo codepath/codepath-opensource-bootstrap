@@ -159,6 +159,8 @@ process_repository() {
     echo ""
     echo "📋 Step 5: Copying issues from source repository..."
 
+    EXISTING_TITLES=$(gh api "repos/$FORK_REPO/issues" --paginate --jq '.[].title' 2>/dev/null || echo "")
+
     # Get all open issues from source repository (excluding pull requests)
     echo "🔍 Fetching issues from $REPO..."
 
@@ -200,9 +202,10 @@ process_repository() {
             echo "📝 Processing issue $((i+1))/$ISSUE_COUNT..."
             
             # Extract issue data using jq with proper error handling
-            if ! TITLE=$(jq -r ".[$i].title" "$TEMP_ISSUES_FILE" 2>/dev/null) || [[ "$TITLE" == "null" ]]; then
-                echo "  ⚠️  Failed to extract title for issue $((i+1)), skipping..."
-                ((FAILED_COUNT++))
+            TITLE=$(jq -r ".[$i].title" "$TEMP_ISSUES_FILE")
+
+            if echo "$EXISTING_TITLES" | grep -Fxq "$TITLE"; then
+                echo "  ⏩ Skipping issue '$TITLE' (already exists)"
                 continue
             fi
             
@@ -298,9 +301,11 @@ FAILED_FORKS=0
 
 for i in "${!REPOSITORIES[@]}"; do
     if process_repository "${REPOSITORIES[$i]}" "$((i+1))" "$TOTAL_REPOS"; then
-        ((SUCCESSFUL_FORKS++))
+        # ((SUCCESSFUL_FORKS++))
+        SUCCESSFUL_FORKS=$((SUCCESSFUL_FORKS + 1))
     else
-        ((FAILED_FORKS++))
+        # ((FAILED_FORKS++))
+        FAILED_FORKS=$((FAILED_FORKS + 1))
         echo "❌ Failed to process ${REPOSITORIES[$i]}"
     fi
 done
