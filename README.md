@@ -23,4 +23,10 @@ This script is for the CodePath AI Open Source capstone class. This script has 2
 ./codepath-opensource-bootstrap.sh
 ```
 
+Or, run directly via:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/codepath/codepath-opensource-bootstrap/main/codepath-opensource-bootstrap.sh | bash
+```
+
 Your forked repositories will be available at `https://github.com/YOUR_USERNAME/REPO_NAME`.
